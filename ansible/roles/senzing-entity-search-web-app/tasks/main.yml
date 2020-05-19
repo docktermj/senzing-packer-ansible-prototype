@@ -1,0 +1,67 @@
+---
+# tasks file for senzing-entity-search-web-app
+- name: Check if Senzing entity search web app is installed
+  stat:
+    path: /opt/entity-search-web-app
+  register: entity_search_web_app_check
+
+- name: Clone Senzing entity search web app
+  git:
+      repo: https://github.com/Senzing/entity-search-web-app.git
+      dest: /opt/entity-search-web-app
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Checkout a specific version
+  raw: cd /opt/entity-search-web-app && git checkout {{ senzing_entity_search_web_app_github_tag | default('master') }}
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Set npm cache
+  shell:
+    cmd: npm config set cache /tmp --global
+  args:
+    executable: /bin/bash
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Npm install based on package.json
+  shell:
+    cmd: runuser -l root -c "cd /opt/entity-search-web-app; npm install"
+  args:
+    executable: /bin/bash
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Npm install @angular/cli@7.3.9
+  shell:
+    cmd: runuser -l root -c "cd /opt/entity-search-web-app; npm install -g @angular/cli@7.3.9"
+  args:
+    executable: /bin/bash
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Production build entity-search-web-app
+  shell:
+    cmd: runuser -l root -c "cd /opt/entity-search-web-app; ng build --prod"
+  args:
+    executable: /bin/bash
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Copy entity-search-web-app environment variable file
+  copy:
+    src: environment_variables
+    dest: /opt/entity-search-web-app
+  when: entity_search_web_app_check.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+      src: senzing-entity-search-web-app
+      dest: /etc/init.d
+      mode: +x
+  when: entity_search_web_app_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing Entity Search Web App
+  command: update-rc.d senzing-entity-search-web-app defaults
+  when: entity_search_web_app_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Senzing Entity Search Web App
+  systemd:
+    name: senzing-entity-search-web-app
+    state: started
+  when: entity_search_web_app_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

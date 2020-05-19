@@ -1,0 +1,68 @@
+---
+# tasks file for senzing-postgres-config
+- name: Check if /var/senzing was created
+  stat:
+    path: /var/senzing
+  register: senzing_project_check
+
+- name: Check if init DB created system files
+  stat:
+    path: /var/lib/postgresql/11/data
+  register: init_db_check
+
+- name: Init DB
+  raw: runuser -l postgres -c '/usr/lib/postgresql/11/bin/initdb /var/lib/postgresql/11/data'
+  when: senzing_project_check.stat.exists == false and init_db_check.stat.exists == false
+
+- name: Check if pg_hba.conf config file exists
+  stat:
+    path: /var/lib/postgresql/11/data/pg_hba.conf
+  register: pg_hba_config_check
+
+- name: Check if postgresql.conf config file exists
+  stat:
+    path: /var/lib/postgresql/11/data/pg_hba.conf
+  register: postgresql_config_check
+
+- name: Copy config files
+  copy:
+    src: "{{ item }}"
+    dest: /var/lib/postgresql/11/data/
+  with_items:
+    - pg_hba.conf
+    - postgresql.conf
+  when: senzing_project_check.stat.exists == false and pg_hba_config_check.stat.exists == false and postgresql_config_check.stat.exists == false
+
+- name: Check if G2 database exists
+  raw: runuser -l postgres -c "psql -lqt" | grep -oP G2 && echo 1 || echo 0
+  register: g2_db_check
+
+- name: Create G2 database
+  raw: runuser -l postgres -c 'psql -c "CREATE DATABASE \"G2\";"'
+  when: senzing_project_check.stat.exists == false and g2_db_check.stdout_lines[1] == "0"
+
+- name: Create G2 schema in database
+  raw: runuser -l postgres -c "psql -d \"G2\" -f /opt/senzing/g2/resources/schema/g2core-schema-postgresql-create.sql"
+  when: senzing_project_check.stat.exists == false and g2_db_check.stdout_lines[1] == "0"
+
+- name: Update postgres password
+  raw: runuser -l postgres -c "psql -c \"ALTER USER postgres PASSWORD 'postgres';\""
+  when: senzing_project_check.stat.exists == false and g2_db_check.stdout_lines[1] == "0"
+
+- name: Setup Senzing project dir
+  raw: python3 /opt/senzing/g2/python/G2CreateProject.py /var/senzing
+  when: senzing_project_check.stat.exists == false
+
+- name: Copy G2Module.ini file to project dir
+  copy:
+    src: G2Module.ini
+    dest: /var/senzing/etc
+    owner: root
+    group: root
+    mode: "u=rw,g=r,o=r"
+    force: yes
+  when: senzing_project_check.stat.exists == false
+
+- name: Update database with senzing configuration
+  raw: /bin/bash -c "source /var/senzing/setupEnv; yes | python3 /var/senzing/python/G2SetupConfig.py"
+  when: senzing_project_check.stat.exists == false

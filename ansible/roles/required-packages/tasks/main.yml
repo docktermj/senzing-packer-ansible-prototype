@@ -1,0 +1,22 @@
+---
+# tasks file for required-packages
+- name: Install required pacakges for Deb based systems
+  apt:
+    name:
+      - apt-transport-https
+      - software-properties-common
+      - curl
+      - git
+      - gnupg2
+      - jq
+      - make
+      - sudo
+      - unixodbc
+      - unixodbc-dev
+      - wget
+    state: present
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Install language and locals
+  raw: localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"

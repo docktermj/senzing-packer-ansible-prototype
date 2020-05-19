@@ -1,0 +1,44 @@
+---
+# tasks file for senzing-g2
+- name: Check if Senzing G2 is installed
+  stat:
+    path: /opt/senzing
+  register: senzing_g2_check
+
+- name: Get Senzing G2 deb file to add repo endpoint
+  get_url:
+    url: https://senzing-production-apt.s3.amazonaws.com/senzingrepo_1.0.0-1_amd64.deb
+    dest: /tmp
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Get Senzing G2 rpm file to add repo endpoint
+  yum:
+    name: https://senzing-production-yum.s3.amazonaws.com/senzingrepo-1.0.0-1.x86_64.rpm
+    state: present
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux")
+
+- name: Install Senzing G2 repo
+  apt:
+    deb: /tmp/senzingrepo_1.0.0-1_amd64.deb
+    update_cache: yes
+    state: present
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Remove temporary file
+  file:
+    path: /tmp/senzingrepo_1.0.0-1_amd64.deb
+    state: absent
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing G2
+  raw: export SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA; apt-get install -y senzingapi={{senzing_g2_release_version}}
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing G2
+  raw: export SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA; yum install -y senzingapi-{{senzing_g2_release_version}}
+  when: senzing_g2_check.stat.exists == false and (ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux")

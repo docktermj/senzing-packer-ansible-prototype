@@ -1,0 +1,8 @@
+---
+# tasks file for nginx
+- name: Install nginx
+  apt:
+    name:
+      - nginx
+    state: present
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"

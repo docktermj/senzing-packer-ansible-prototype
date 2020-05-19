@@ -1,0 +1,50 @@
+---
+# tasks file for senzing-stream-loader
+- name: Check if Senzing stream loader is installed
+  stat:
+    path: /opt/senzing-stream-loader
+  register: senzing_stream_loader_check
+
+- name: Pip install required packages
+  pip:
+    name:
+     - configparser
+     - confluent-kafka
+     - psutil
+     - pika
+    executable: pip3
+    state: forcereinstall
+  when: senzing_stream_loader_check.stat.exists == false
+
+- name: Clone Senzing stream loader
+  git:
+    repo: https://github.com/Senzing/stream-loader.git
+    dest: /opt/senzing-stream-loader
+  when: senzing_stream_loader_check.stat.exists == false
+
+- name: Checkout a specific version
+  raw: cd /opt/senzing-stream-loader && git checkout {{ senzing_stream_loader_github_tag | default('master') }}
+  when: senzing_stream_loader_check.stat.exists == false
+
+- name: Copy senzing-stream-loader environment variable file
+  copy:
+    src: environment_variables
+    dest: /opt/senzing-stream-loader
+  when: senzing_stream_loader_check.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+    src: senzing-stream-loader
+    dest: /etc/init.d
+    mode: +x
+  when: senzing_stream_loader_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing Stream Loader
+  command: update-rc.d senzing-stream-loader defaults
+  when: senzing_stream_loader_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Senzing Stream Loader
+  systemd:
+    name: senzing-stream-loader
+    state: started
+  when: senzing_stream_loader_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

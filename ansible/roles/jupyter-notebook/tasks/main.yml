@@ -1,0 +1,84 @@
+---
+# tasks file for jupyter-notebook
+- name: Check if Jupyter Notebook was Installed
+  stat:
+    path: /etc/init.d/jupyter-notebook
+  register: jupyter_notebook_check
+
+- name: Pip install required packages
+  pip:
+    name:
+     - jupyter
+     - jupyterlab
+     - bokeh
+     - networkx
+     - numpy
+     - pandas
+     - plotly
+     - psutil
+     - pyodbc
+     - py4j
+     - qgrid
+     - seaborn
+     - sympy
+     - version_information
+     - widgetsnbextension
+     - ipywidgets
+     - beakerx
+    executable: pip3
+    state: forcereinstall
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Install BeakerX
+  shell:
+    cmd: beakerx install
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Install @jupyter-widgets/jupyterlab-manager
+  shell:
+    cmd: jupyter labextension install @jupyter-widgets/jupyterlab-manager
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: BeakerX Install
+  shell:
+    cmd: jupyter labextension install beakerx-jupyterlab
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Clean up labextensions
+  shell:
+    cmd: jupyter lab clean
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Create jovyan user
+  user:
+    name: jovyan
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Create target directory for jupyter-notebook
+  file:
+    path: /opt/jupyter-notebook
+    state: directory
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Copy jupyter-notebook environment variable file
+  copy:
+    src: environment_variables
+    dest: /opt/jupyter-notebook/environment_variables
+  when: jupyter_notebook_check.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+    src: jupyter-notebook
+    dest: /etc/init.d
+    mode: +x
+  when: jupyter_notebook_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Jupyter Notebook service
+  command: update-rc.d jupyter-notebook defaults
+  when: jupyter_notebook_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Jupyter Notebook service
+  systemd:
+    name: jupyter-notebook
+    state: started
+  when: jupyter_notebook_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

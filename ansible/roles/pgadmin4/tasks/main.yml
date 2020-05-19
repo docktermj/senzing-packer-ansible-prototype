@@ -1,0 +1,65 @@
+---
+# tasks file for pgadmin
+- name: Check if pgAdmin4 is installed
+  stat:
+    path: /usr/local/lib/python3.7/dist-packages/pgadmin4
+  register: pgadmin4_check
+
+- name: Intall pgAdmin4
+  raw: pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.19/pip/pgadmin4-4.19-py2.py3-none-any.whl
+  when: pgadmin4_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Check if pgAdmin4 sqlite db exists
+  stat:
+    path: /var/lib/pgadmin/pgadmin4.db
+  register: pgadmin4_db
+
+- name: Copy pdadmin sqlite db
+  copy:
+    src: pgadmin4.db
+    dest: /var/lib/pgadmin/
+    owner: root
+    group: root
+    mode: "u=rw,g=,o="
+  when: pgadmin4_check.stat.exists == false and pgadmin4_db.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Check Nginx config exists
+  stat:
+    path: /etc/nginx/sites-enabled/pgAdmin4.conf
+  register: nginx_config
+
+- name: Copy Nginx config
+  copy:
+      src: pgAdmin4.conf
+      dest: /etc/nginx/sites-enabled
+  when: pgadmin4_check.stat.exists == false and nginx_config.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Restart Nginx
+  systemd:
+    name: nginx
+    state: restarted
+  when: pgadmin4_check.stat.exists == false and nginx_config.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Check if pgAdmin4 service script exists
+  stat:
+    path: /etc/init.d/pgAdmin4
+  register: pgadmin4_service
+
+- name: Copy service shell to sysvinit location
+  copy:
+      src: pgAdmin4
+      dest: /etc/init.d
+      group: root
+      owner: root
+      mode: +x
+  when: pgadmin4_check.stat.exists == false and pgadmin4_service.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install pgAdmin4 service
+  command: update-rc.d pgAdmin4 defaults
+  when: pgadmin4_check.stat.exists == false and pgadmin4_service.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start pgAdmin4 service
+  sysvinit:
+    name: pgAdmin4
+    state: started
+  when: pgadmin4_check.stat.exists == false and pgadmin4_service.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
