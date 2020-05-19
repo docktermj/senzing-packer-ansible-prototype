@@ -6,3 +6,5 @@ output-*/
 
 # For built boxes
 *.box
+
+vars/private-*.json

@@ -25,10 +25,22 @@ mkdir ~/packer_cache
 export PACKER_CACHE_DIR=~/packer_cache
 ```
 
+### amazon-ebs preparation
+
+#### Install aws cli
+
+1. [Installing the AWS CLI version 2 on Linux](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
+
+#### Create AWS access key
+
+1. Create [Access keys for CLI, SDK, & API access](https://console.aws.amazon.com/iam/home?#/security_credentials).
+1. Packer [using AWS authentication](https://www.packer.io/docs/builders/amazon/#authentication)
+
+
 ### Build all versions
 
 ```console
-make
+make all
 ```
 
 ### Build specific version
