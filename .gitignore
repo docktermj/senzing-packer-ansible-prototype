@@ -8,3 +8,4 @@ output-*/
 *.box
 
 vars/private-*.json
+vars/aws.json

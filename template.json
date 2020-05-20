@@ -4,6 +4,7 @@
     "aws_ami_regions": "us-east-1",
     "aws_image_name": "packer",
     "aws_instance_type": "t2.micro",
+    "aws_mfa_code": "",
     "aws_region": "us-east-1",
     "aws_secret_key": "",
     "aws_source_ami": "",
@@ -51,7 +52,7 @@
       "boot_command": [
         "<esc><wait>",
         "install <wait>",
-        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed-ubuntu.cfg <wait>",
         "debian-installer=en_US.UTF-8 <wait>",
         "auto <wait>",
         "locale=en_US.UTF-8 <wait>",
@@ -150,7 +151,7 @@
       "boot_command": [
         "<esc><wait>",
         "auto ",
-        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed-ubuntu.cfg<wait>",
         "<enter>"
       ],
       "boot_wait": "10s",
@@ -215,6 +216,5 @@
       "type": "shell"
     }
   ]
-
 }
 
