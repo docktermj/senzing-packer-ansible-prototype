@@ -1,8 +1,8 @@
 
 # Default location of var file.
 
-VAR_FILE := vars/ubuntu-18.04.04.json
-AWS_FILE := vars/aws.json
+VAR_FILE ?= vars/ubuntu-18.04.04.json
+AWS_FILE ?= vars/aws.json
 TIMESTAMP := $(shell date +%s)
 
 # -----------------------------------------------------------------------------
