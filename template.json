@@ -24,9 +24,9 @@
     "virtualbox_artifact_description": "",
     "virtualbox_artifact_version": "",
     "virtualbox_guest_os_type": "ubuntu-64",
-    "vm_name": "packer-senzing-demo-kafka-postgres-debian-10.03",
+    "vm_name": "packer-senzing-demo-kafka-postgres-ubuntu",
     "vmware_guest_os_type": "ubuntu-64",
-    "vmware_vmdk_name": "packer-senzing-demo-kafka-postgres-debian-10.03"
+    "vmware_vmdk_name": "packer-senzing-demo-kafka-postgres-ubuntu"
   },
   "builders": [
     {
@@ -193,6 +193,7 @@
       "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
       "ssh_password": "{{user `ssh_password`}}",
       "ssh_port": 22,
+      "ssh_timeout": "2h",
       "ssh_username": "{{user `ssh_username`}}",
       "tools_upload_flavor": "linux",
       "type": "vmware-iso",

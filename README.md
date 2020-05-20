@@ -29,13 +29,49 @@ export PACKER_CACHE_DIR=~/packer_cache
 
 #### Install aws cli
 
+:thinking: **Optional:** The following instructions show how to install the `aws` command line interface.
+
 1. [Installing the AWS CLI version 2 on Linux](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
 #### Create AWS access key
 
-1. Create [Access keys for CLI, SDK, & API access](https://console.aws.amazon.com/iam/home?#/security_credentials).
-1. Packer [using AWS authentication](https://www.packer.io/docs/builders/amazon/#authentication)
+An AWS access key is needed by Packer to access the account.
+This information is usually kept in `~/.aws/credentials`
+and is accessed by the Packer `amazon-ebs` builder.
 
+1. Create [Access keys for CLI, SDK, & API access](https://console.aws.amazon.com/iam/home?#/security_credentials).
+
+1. **Method #1:** Use the `aws` command line interface to create `~/.aws/credentials`.
+   Supply the information when prompted.
+   Example:
+
+    ```console
+    $ aws configure
+
+    AWS Access Key ID:
+    AWS Secret Access Key:
+    Default region name [us-east-1]:
+    Default output format [json]:
+    ```
+
+1. **Method #2:** :pencil2: Manually create a `~/.aws/credentials` file.
+   Example:
+
+    ```console
+    mkdir ~/.aws
+
+    cat <<EOT > ~/.aws/credentials
+    [default]
+    aws_access_key_id = AAAAAAAAAAAAAAAAAAAA
+    aws_secret_access_key = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    EOT
+
+    chmod 770 ~/.aws
+    chmod 750 ~/.aws/credentials
+    ```
+
+1. References:
+    1. Packer [using AWS authentication](https://www.packer.io/docs/builders/amazon/#authentication)
 
 ### Build all versions
 
