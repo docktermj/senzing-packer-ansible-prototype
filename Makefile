@@ -1,7 +1,7 @@
 
 # Default location of var file.
 
-VAR_FILE := vars/debian-9.12.0.json
+VAR_FILE := vars/ubuntu-18.04.04.json
 AWS_FILE := vars/aws.json
 TIMESTAMP := $(shell date +%s)
 
@@ -15,6 +15,9 @@ help:
 	@echo 'Usage:'
 	@echo '  make [VAR_FILE=$(VAR_FILE)] [AWS_FILE=$(AWS_FILE)] amazon-ebs'	
 	@echo '  make [VAR_FILE=$(VAR_FILE)] {target}'	
+	@echo '  make template-validate  # lint template.json'
+	@echo '  make template-debug     # inspect template.json'
+	@echo '  make template-format    # After formatting, variables need to be moved to top of template.json'
 	@echo
 	@echo 'Where:'
 	@echo '  Targets:'
@@ -34,7 +37,13 @@ all:
 
 .PHONY: amazon-ebs
 amazon-ebs:
+	packer build -only=amazon-ebs -var-file $(VAR_FILE) -var-file $(AWS_FILE) template.json
+
+
+.PHONY: amazon-ebs-debug
+amazon-ebs-debug:
 	packer build -only=amazon-ebs -var-file $(VAR_FILE) -var-file $(AWS_FILE) -debug template.json
+
 
 .PHONY: vmware-iso
 vmware-iso:
@@ -52,11 +61,13 @@ virtualbox-iso:
 .PHONY: template-debug
 template-debug:
 	packer console -var-file $(VAR_FILE) -var-file $(AWS_FILE) template.json
+
 	
 .PHONY: template-format
 template-format:
 	mv template.json template.json.$(TIMESTAMP)
 	packer fix template.json.$(TIMESTAMP) > template.json
+
 	
 .PHONY: template-validate
 template-validate:
