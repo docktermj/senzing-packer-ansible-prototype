@@ -53,8 +53,8 @@ virtualbox-iso:
 template-debug:
 	packer console -var-file $(VAR_FILE) -var-file $(AWS_FILE) template.json
 	
-.PHONY: template-lint
-template-lint:
+.PHONY: template-format
+template-format:
 	mv template.json template.json.$(TIMESTAMP)
 	packer fix template.json.$(TIMESTAMP) > template.json
 	
