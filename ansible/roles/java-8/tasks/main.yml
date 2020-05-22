@@ -1,0 +1,33 @@
+---
+# tasks file for java-8
+- name: Add Jfrog Apt Key for Java 8
+  apt_key:
+    url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Add JFrog Deb Repo for Java 8
+  raw: add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Add JFrog YUM Repo for Java 8
+  yum_repository:
+    name: AdoptOpenJDK
+    baseurl: http://adoptopenjdk.jfrog.io/adoptopenjdk/rpm/centos/$releasever/$basearch
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+    state: present
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+- name: Install Java 8 from JFrog
+  apt:
+    name:  ["adoptopenjdk-8-hotspot"]
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Install Java 8 from JFrog
+  yum:
+    name: ["adoptopenjdk-8-openj9"]
+    state: present
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"

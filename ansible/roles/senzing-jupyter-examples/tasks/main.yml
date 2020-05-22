@@ -1,0 +1,26 @@
+---
+# tasks file for senzing-jupyter-examples
+- name: Check if Senzing Jupyter Examples Exists
+  stat:
+    path: /home/jovyan/senzing-examples
+  register: senzing_jupyter_examples
+
+- name: Clone Senzing Jupyter Examples Repo
+  git:
+    repo: https://github.com/Senzing/docker-jupyter.git
+    dest: /home/jovyan/docker-jupyter
+  when: senzing_jupyter_examples.stat.exists == false
+
+- name: Clone Senzing Jupyter Examples Repo
+  shell:
+    cmd: mv /home/jovyan/docker-jupyter/notebooks/senzing-examples /home/jovyan/senzing-examples; rm -rf /home/jovyan/docker-jupyter
+  when: senzing_jupyter_examples.stat.exists == false
+
+- name: Resync directory with jovyan
+  file:
+    dest: /home/jovyan/senzing-examples
+    owner: jovyan
+    group: jovyan
+    mode: '0777'
+    recurse: yes
+  when: senzing_jupyter_examples.stat.exists == false

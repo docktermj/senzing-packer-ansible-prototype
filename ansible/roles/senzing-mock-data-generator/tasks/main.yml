@@ -1,0 +1,50 @@
+---
+# tasks file for senzing-mock-data-generator
+- name: Check if Senzing mock data generator is installed
+  stat:
+    path: /opt/senzing-mock-data-generator
+  register: senzing_mock_data_generator
+
+- name: Pip install required packages
+  pip:
+    name:
+      - confluent-kafka
+      - gevent
+      - requests
+      - pika
+    executable: pip3
+    state: forcereinstall
+  when: senzing_mock_data_generator.stat.exists == false
+
+- name: Clone Senzing mock data generator
+  git:
+    repo: https://github.com/Senzing/mock-data-generator.git
+    dest: /opt/senzing-mock-data-generator
+  when: senzing_mock_data_generator.stat.exists == false
+
+- name: Checkout a specific version
+  raw: cd /opt/senzing-mock-data-generator && git checkout {{ senzing_mock_data_generator_github_tag | default('master') }}
+  when: senzing_mock_data_generator.stat.exists == false
+
+- name: Copy senzing-mock-data-generator environment variable file
+  copy:
+    src: environment_variables
+    dest: /opt/senzing-mock-data-generator
+  when: senzing_mock_data_generator.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+    src: senzing-mock-data-generator
+    dest: /etc/init.d
+    mode: +x
+  when: senzing_mock_data_generator.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing Stream Loader
+  command: update-rc.d senzing-mock-data-generator defaults
+  when: senzing_mock_data_generator.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Senzing Stream Loader
+  systemd:
+    name: senzing-mock-data-generator
+    state: started
+  when: senzing_mock_data_generator.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

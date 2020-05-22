@@ -1,0 +1,61 @@
+---
+# tasks file for phppgadmin
+- name: Check if phppgadmin is installed
+  stat:
+    path: /var/opt/phppgadmin
+  register: phppgadmin_check
+
+- name: Install required packages
+  apt:
+    name:
+      - php-mbstring
+      - php-pgsql
+      - php7.3-fpm
+    state: present
+  when: phppgadmin_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Clone phppgadmin repo
+  git:
+    repo: https://github.com/phppgadmin/phppgadmin.git
+    dest: /var/opt/phppgadmin
+  when: phppgadmin_check.stat.exists == false
+
+- name: Checkout a specific version
+  raw: cd /var/opt/phppgadmin && git checkout {{ phppgadmin_github_tag | default('master') }}
+  when: phppgadmin_check.stat.exists == false
+
+- name: Copy phppgadmin config file
+  copy:
+    src: config.inc.php
+    dest: /var/opt/phppgadmin/conf
+    owner: root
+    group: root
+    mode: "u=rw,g=r,o=r"
+  when: phppgadmin_check.stat.exists == false
+
+- name: Copy pip.ini file
+  copy:
+    src: php.ini
+    dest: /etc/php/7.3/fpm/
+    owner: root
+    group: root
+    mode: "u=rw,g=r,o=r"
+  when: phppgadmin_check.stat.exists == false
+
+- name: Copy phppgadmin.conf file
+  copy:
+    src: phppgadmin.conf
+    dest: /etc/nginx/sites-enabled/
+  when: phppgadmin_check.stat.exists == false
+
+- name: Restart php7.3-fpm
+  systemd:
+    name: php7.3-fpm
+    state: restarted
+  when: phppgadmin_check.stat.exists == false
+
+- name: Restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+  when: phppgadmin_check.stat.exists == false

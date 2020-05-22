@@ -1,0 +1,66 @@
+---
+# tasks file for senzing-api-server
+- name: Check if Senzing Api Server Jar was built
+  stat:
+    path: /opt/senzing-api-server/senzing-api-server.jar
+  register: senzing_api_server_check
+
+- name: Clone Senzing Api Server
+  git:
+      repo: https://github.com/Senzing/senzing-api-server.git
+      dest: /senzing-api-server
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Checkout a specific version
+  raw: cd /senzing-api-server && git checkout {{ senzing_api_server_github_tag | default('master') }}
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Dynamically get Senzing G2 Jar Version
+  raw: cat /opt/senzing/g2/g2BuildVersion.json | jq --raw-output '.VERSION'
+  register: senzing_g2_jar_version
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Dynamically get Senzing API Server Jar Version
+  raw: cd /senzing-api-server && mvn "help:evaluate" -Dexpression=project.version -q -DforceStdout
+  register: senzing_api_server_jar_version
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Build Senzing-Api-Server Jar
+  raw: cd /senzing-api-server && export SENZING_API_SERVER_JAR_VERSION={{ senzing_api_server_jar_version.stdout_lines[1] }} && make SENZING_G2_JAR_PATHNAME=/opt/senzing/g2/lib/g2.jar SENZING_G2_JAR_VERSION={{ senzing_g2_jar_version.stdout_lines[1] }} package
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Create target directory for Senzing-api-server
+  file:
+    path: /opt/senzing-api-server
+    state: directory
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Move Senzing-API-Server Jar to /var/senzing-api-server
+  copy:
+    src: /senzing-api-server/target/senzing-api-server-{{ senzing_api_server_jar_version.stdout_lines[1] }}.jar
+    dest: /opt/senzing-api-server/senzing-api-server.jar
+    remote_src: yes
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Clean working area and remove github repo files
+  file:
+    path: /senzing-api-server
+    state: absent
+  when: senzing_api_server_check.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+      src: senzing-api-server
+      dest: /etc/init.d
+      mode: +x
+  when: senzing_api_server_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Senzing API Server service
+  command: update-rc.d senzing-api-server defaults
+  when: senzing_api_server_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Senzing API Server service
+  systemd:
+    name: senzing-api-server
+    state: started
+  when: senzing_api_server_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

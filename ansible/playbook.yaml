@@ -1,0 +1,32 @@
+---
+- hosts: all
+  environment:
+    PATH: "/usr/n-install/bin:{{ ansible_env.PATH }}"
+  become: true
+  gather_facts: true
+  vars:
+    senzing_api_server_github_tag: 1.7.9
+    senzing_g2_release_version: 1.14.7-20086
+    senzing_entity_search_web_app_github_tag: 1.0.4
+    senzing_stream_loader_github_tag: 1.5.3
+    senzing_mock_data_generator_github_tag: 1.2.0
+    phppgadmin_github_tag: REL_7-12-1
+  roles:
+    - required-packages
+    - java-8
+    - maven
+    - python3
+    - node
+#   - jupyter-notebook
+#   - postgres-11
+    - nginx
+    - senzing-g2
+#   - senzing-postgres-config
+    - senzing-api-server
+    - senzing-entity-search-web-app
+    - senzing-jupyter-examples
+#   - phppgadmin
+    - senzing-sample-demo-data
+    - kafka
+    - senzing-stream-loader
+    - senzing-mock-data-generator

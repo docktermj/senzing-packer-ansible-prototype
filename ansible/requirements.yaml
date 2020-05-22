@@ -1,0 +1,9 @@
+---
+
+# See http://galaxy.ansible.com
+
+#- src: sansible.kafka
+#- src: gantsign.maven
+# - src: nginxinc.nginx
+#- src: geerlingguy.nodejs
+- src: manala.phppgadmin

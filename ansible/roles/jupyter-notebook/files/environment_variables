@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export SENZING_ROOT=/opt/senzing
+export PYTHONPATH=${SENZING_ROOT}/g2/python
+export LD_LIBRARY_PATH=${SENZING_ROOT}/g2/lib:${SENZING_ROOT}/g2/lib/debian
+export DB2_CLI_DRIVER_INSTALL_PATH=${SENZING_ROOT}/db2/clidriver
+export PATH=$PATH:${SENZING_ROOT}/db2/clidriver/adm:${SENZING_ROOT}/db2/clidriver/bin
+export IJAVA_CLASSPATH=/opt/senzing/g2/lib/g2.jar
+export DYLD_LIBRARY_PATH=/opt/senzing/g2/lib/

@@ -1,0 +1,10 @@
+---
+# tasks file for node
+- name: Check if n-install exists
+  stat:
+    path: /usr/n-install
+  register: n_install
+
+- name: Install n-install
+  raw: curl -L https://git.io/n-install | N_PREFIX=/usr/n-install bash -s -- -yq lts 12.16.1
+  when: n_install.stat.exists == false

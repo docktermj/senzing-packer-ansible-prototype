@@ -1,0 +1,59 @@
+---
+# tasks file for kafka
+- name: Check if Kafka is installed
+  stat:
+    path: /etc/init.d/kafka
+  register: kafka_check
+
+- name: Download Kafka
+  get_url:
+    url: http://apache.mirrors.hoobly.com/kafka/2.5.0/kafka_2.12-2.5.0.tgz
+    dest: /tmp
+  when: kafka_check.stat.exists == false
+
+- name: Decompress tar ball
+  unarchive:
+    src: /tmp/kafka_2.12-2.5.0.tgz
+    dest: /opt
+    remote_src: yes
+  when: kafka_check.stat.exists == false
+
+- name: Clean working area and remove tmp file
+  file:
+    path: /tmp/kafka_2.12-2.5.0.tgz
+    state: absent
+  when: kafka_check.stat.exists == false
+
+- name: Copy service shell to sysvinit location
+  copy:
+    src: zookeeper
+    dest: /etc/init.d
+    mode: +x
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Zookeeper service
+  command: update-rc.d zookeeper defaults
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Zookeeper service
+  systemd:
+    name: zookeeper
+    state: started
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Copy service shell to sysvinit location
+  copy:
+    src: kafka
+    dest: /etc/init.d
+    mode: +x
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Install Kafka service
+  command: update-rc.d kafka defaults
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")
+
+- name: Start Kafka service
+  systemd:
+    name: kafka
+    state: started
+  when: kafka_check.stat.exists == false and (ansible_distribution == "Debian" or ansible_distribution == "Ubuntu")

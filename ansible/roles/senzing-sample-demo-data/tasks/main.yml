@@ -1,0 +1,4 @@
+---
+# tasks file for senzing-demo-data
+- name: Load Senzing sample demo data
+  raw: /bin/bash -c "source /var/senzing/setupEnv; python3 /var/senzing/python/G2Loader.py -P"

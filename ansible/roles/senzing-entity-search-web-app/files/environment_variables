@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export SENZING_API_SERVER_URL=http://localhost:8080
+export SENZING_WEB_SERVER_PORT=8081
+export N_PREFIX="/usr/n-install"; [[ :$PATH: == *":$N_PREFIX/bin:"* ]] || PATH+=":$N_PREFIX/bin"
