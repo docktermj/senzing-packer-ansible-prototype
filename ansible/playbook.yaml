@@ -21,11 +21,11 @@
 #   - postgres-11
     - nginx
     - senzing-g2
-    - senzing-postgres-config
+#   - senzing-postgres-config
     - senzing-api-server
     - senzing-entity-search-web-app
     - senzing-jupyter-examples
-    - phppgadmin
+#   - phppgadmin
     - senzing-sample-demo-data
     - kafka
     - senzing-stream-loader
